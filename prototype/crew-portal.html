@@ -1,6 +1,8 @@
+<!doctype html><html lang="en"><head>
 <meta charset="utf-8">
 <title>Herkey Crew & Office</title>
-<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0B0C0E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
@@ -15,7 +17,8 @@
 }
 *{box-sizing:border-box}
 html,body{min-height:100%}
-body{background:var(--ink);color:var(--text);font-family:var(--body);font-size:14.5px;line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+html{background:var(--ink)}
+body{margin:0;background:var(--ink);color:var(--text);font-family:var(--body);font-size:14.5px;line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:50;background:var(--ink)}
 #bg{position:fixed;inset:-2%;width:104%;height:104%;z-index:0;filter:blur(2.2px);opacity:.95}
 .veil{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(90% 70% at 70% 10%,rgba(11,12,14,.2),rgba(11,12,14,.75) 70%)}
@@ -152,7 +155,7 @@ textarea{min-height:76px;resize:vertical}
 .card-j{padding:10px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.04);cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:3px;font-size:.82rem;border-left:3px solid var(--gold)}
 .card-j b{font-size:.86rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .card-j:hover{background:rgba(255,255,255,.07)}
-.card-j.Completed{border-left-color:var(--ok);opacity:.7}.card-j.In.Progress{border-left-color:var(--warn)}
+.card-j.st-completed{border-left-color:var(--ok);opacity:.7}.card-j.st-in-progress{border-left-color:var(--warn)}.card-j.st-on-hold{border-left-color:var(--muted)}.card-j.st-requested{border-left-color:var(--info)}.card-j.st-accepted{border-left-color:var(--violet)}
 
 /* tables */
 .tw{overflow-x:auto;border-radius:var(--r);border:1px solid var(--line);background:var(--panel)}
@@ -189,10 +192,11 @@ dl.kv dt{color:var(--muted)} dl.kv dd{margin:0;min-width:0}
 .check li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px;align-items:start}
 .tk{width:18px;height:18px;border-radius:5px;display:grid;place-items:center;font-size:.7rem;font-weight:800;margin-top:2px}
 .tk.y{background:rgba(111,211,156,.18);color:var(--ok)} .tk.p{background:var(--gold);color:var(--on-gold)} .tk.n{background:rgba(255,255,255,.06);color:var(--muted)}
-.matrix td{text-align:center} .matrix td:first-child{text-align:left;white-space:normal;min-width:220px}
+.matrix th,.matrix td{text-align:center;padding:9px 8px} .matrix th{letter-spacing:.08em} .matrix th:first-child,.matrix td:first-child{text-align:left;white-space:normal;min-width:150px;padding-left:12px}
 .yes{color:var(--ok);font-weight:700} .lim{color:var(--warn);font-size:.78rem}
 .sample{font-size:.64rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);border:1px dashed var(--line-2);padding:2px 9px;border-radius:99px}
 </style>
+</head><body>
 
 <canvas id="bg" aria-hidden="true"></canvas>
 <div class="veil" aria-hidden="true"></div>
@@ -250,6 +254,7 @@ const fDT=t=>new Date(t).toLocaleString('en-US',{month:'short',day:'numeric',hou
 const fT=t=>new Date(t).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
 const usd=c=>'$'+(c/100).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const usd0=c=>'$'+Math.round(c/100).toLocaleString('en-US');
+const slug=s=>String(s).toLowerCase().replace(/[^a-z0-9]+/g,'-');
 const uid=p=>p+Math.random().toString(36).slice(2,6).toUpperCase();
 function toast(m){const t=document.createElement('div');t.className='toast';t.setAttribute('role','status');t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),2600);}
 function dist(a,b){const R=6371000,r=x=>x*Math.PI/180,dLa=r(b.lat-a.lat),dLo=r(b.lng-a.lng);const q=Math.sin(dLa/2)**2+Math.cos(r(a.lat))*Math.cos(r(b.lat))*Math.sin(dLo/2)**2;return 2*R*Math.asin(Math.sqrt(q));}
@@ -307,6 +312,7 @@ function seed(){
     J('J-1040',{title:'Porch railing re-anchor',category:'Carpentry',cust:'c2',priority:'urgent',status:'On Hold',crew:'u3',day:wd(3),slot:1,created:now-6*DAY,desc:'Waiting on brackets.',log:[{t:now-6*DAY,by:'Customer',x:'Request received'},{t:now-2*DAY,by:'Eli Ortiz',x:'On hold: brackets backordered'}]}),
     J('J-1038',{title:'Patch and paint drywall',category:'Painting',cust:'c1',priority:'routine',status:'Completed',crew:'u3',day:sod(now-9*DAY),slot:2,created:now-12*DAY,completed:now-8*DAY,desc:'Two holes from move-out.',log:[{t:now-8*DAY,by:'Eli Ortiz',x:'Completed'}]}),
     J('J-1035',{title:'Storm door rehang',category:'Carpentry',cust:'c4',priority:'routine',status:'Completed',crew:'u1',day:sod(now-3*DAY),slot:0,created:now-7*DAY,completed:now-3*DAY,desc:'',log:[{t:now-3*DAY,by:'Marcus Lee',x:'Completed'}]}),
+    J('J-1029',{title:'Deck board replacement',category:'Carpentry',cust:'c4',priority:'routine',status:'Completed',crew:'u1',day:sod(now-32*DAY),slot:0,created:now-38*DAY,completed:now-31*DAY,desc:'Replace rotted deck boards.',log:[{t:now-31*DAY,by:'Marcus Lee',x:'Completed'}]}),
     J('J-1033',{title:'Bath fan replacement',category:'Electrical',cust:'c3',priority:'routine',status:'Completed',crew:'u2',day:sod(now-5*DAY),slot:1,created:now-10*DAY,completed:now-5*DAY,desc:'',log:[{t:now-5*DAY,by:'Tasha Green',x:'Completed'}]}),
   ];
   const estimates=[
@@ -330,17 +336,21 @@ function seed(){
     const inT=day+(7.5+ui*.25)*HR, outT=inT+(8+((d+ui)%3)*.5)*HR; time.push({id:uid('T'),user:u,in:inT,out:outT,site:customers[(d+ui)%4].id,check:'Verified',dist:40+((d*37+ui*13)%120),review:'Approved'}); }});
   time.push({id:uid('T'),user:'u1',in:now-1.6*HR,out:null,site:'c1',check:'Verified',dist:38,review:'Open'});
   time.push({id:uid('T'),user:'u3',in:sod(now-DAY)+7.6*HR,out:sod(now-DAY)+16*HR,site:'c3',check:'Needs review',dist:260,review:'Pending',note:'Gate locked, clocked in from the street.'});
-  return {v:3, role:'Crew', views:{Crew:'today',CrewLead:'overview',Finance:'overview',Admin:'overview'}, users, customers, jobs, estimates, invoices, expenses, time, seq:{est:2054,inv:3019,x:522}, gps:{u1:'c1',u2:'off',u3:'off',u4:'off'}, answers:{}};
+  return {v:4, role:'Crew', views:{Crew:'today',CrewLead:'overview',Finance:'overview',Admin:'overview'}, users, customers, jobs, estimates, invoices, expenses, time, seq:{est:2054,inv:3019,x:522}, gps:{u1:'c1',u2:'off',u3:'off',u4:'off'}, answers:{}, audit:[]};
 }
-const KEY='herkey-staff-v3'; let S;
+const KEY='herkey-staff-v4'; let S;
 try{ S=JSON.parse(localStorage.getItem(KEY)) }catch(e){}
-if(!S||S.v!==3) S=seed();
+if(!S||S.v!==4) S=seed();
+S.audit||=[];
 const save=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(S)) }catch(e){} };
 
 const ME={Crew:'u1',CrewLead:'u4',Finance:'u5',Admin:'u6'};
 const ROLE_LABEL={Crew:'Crew',CrewLead:'Crew Lead',Finance:'Finance',Admin:'Admin'};
+const audit=x=>S.audit.push({t:Date.now(),by:me().name,x});
 const ROLE_DESC={Crew:'Your jobs, clock and expenses',CrewLead:'Assign, schedule, approve',Finance:'Billing, spending, payroll',Admin:'Everything, plus access'};
-const me=()=>S.users.find(u=>u.id===ME[S.role]);
+const me=()=>{ const act=u=>u.role===S.role&&u.status==='Active';
+  return S.users.find(u=>u.id===ME[S.role]&&act(u))||S.users.find(act)||S.users.find(u=>u.id===ME[S.role]); };
+const roleLeft=r=>S.users.some(u=>u.role===r&&u.status==='Active');
 const U=id=>S.users.find(u=>u.id===id); const C=id=>S.customers.find(c=>c.id===id); const Jb=id=>S.jobs.find(j=>j.id===id);
 const crew=()=>S.users.filter(u=>(u.role==='Crew'||u.role==='CrewLead')&&u.status==='Active');
 const tot=d=>d.lines.reduce((a,[,q,p])=>a+Math.round(q*p),0);
@@ -363,7 +373,8 @@ function counts(){ const m=me(); return {
 
 let after=[];
 function chrome(){
-  $('#role').innerHTML=Object.keys(ROLE_LABEL).map(r=>`<option value="${r}" ${S.role===r?'selected':''}>${ROLE_LABEL[r]}</option>`).join('');
+  if(!roleLeft(S.role)) S.role='Admin';
+  $('#role').innerHTML=Object.keys(ROLE_LABEL).filter(r=>roleLeft(r)||r===S.role).map(r=>`<option value="${r}" ${S.role===r?'selected':''}>${ROLE_LABEL[r]}</option>`).join('');
   const m=me(); $('#who').innerHTML=`<span class="av">${m.name.split(' ').map(s=>s[0]).join('')}</span><span>${esc(m.name)}</span>`;
   const ct=counts();
   $('#rail').innerHTML=`<div class="role"><div class="eyebrow">${ROLE_LABEL[S.role]}</div><b>${esc(m.name)}</b><small>${ROLE_DESC[S.role]}</small></div>`+
@@ -371,7 +382,7 @@ function chrome(){
 }
 function render(){ chrome(); const v=S.views[S.role]; $('#main').innerHTML=(V[v]||V.overview)(); const f=after; after=[]; f.forEach(x=>x());
   const h='#'+S.role.toLowerCase()+'-'+v; if(location.hash!==h){ try{history.replaceState(null,'',h)}catch(e){} } save(); }
-function fromHash(){ const m=/^#(crew|crewlead|finance|admin)-([a-z]+)$/.exec(location.hash); if(!m) return; const r=Object.keys(ROLE_LABEL).find(k=>k.toLowerCase()===m[1]); S.role=r; if(NAV[r].some(n=>n[0]===m[2])) S.views[r]=m[2]; }
+function fromHash(){ const m=/^#(crew|crewlead|finance|admin)-([a-z]+)$/.exec(location.hash); if(!m) return; const r=Object.keys(ROLE_LABEL).find(k=>k.toLowerCase()===m[1]); if(!roleLeft(r)) return; S.role=r; if(NAV[r].some(n=>n[0]===m[2])) S.views[r]=m[2]; }
 const head=(eb,t,p,act='')=>`<div class="head"><div><div class="eyebrow">${eb}</div><h2 style="margin-top:4px">${t}</h2>${p?`<p>${p}</p>`:''}</div><div class="act">${act}</div></div>`;
 const when=j=>j.day!=null?`${fDay(j.day)}, ${SLOTS[j.slot]}`:'Not scheduled';
 function jrow(j,opts={}){
@@ -475,7 +486,7 @@ V.jobs=()=>{ const F={Open:j=>!['Completed','Canceled'].includes(j.status),Uncla
   return head('Jobs','From request to completion.','Open a job to assign crew, schedule it, change status, or bill it.')+`<div class="chips">${Object.keys(F).map(k=>`<button class="chip" data-jf="${k}" aria-pressed="${jf===k}">${k}</button>`).join('')}</div>`+list(l,'No jobs match.'); };
 V.schedule=()=>{ const days=[]; let d=sod(Date.now()); while(days.length<5){ const w=new Date(d).getDay(); if(w&&w!==6) days.push(d); d+=DAY; }
   const uns=S.jobs.filter(j=>j.day==null&&!['Completed','Canceled'].includes(j.status));
-  return head('Schedule','This week on the road.','Each card is a scheduled job. Open one to move it or reassign it.')+`<div class="glass pad"><div class="board">${days.map((d,i)=>`<div class="col"><h4 class="${i===0?'today':''}">${i===0?'Today':new Date(d).toLocaleDateString('en-US',{weekday:'short'})} · ${new Date(d).getDate()}</h4>${S.jobs.filter(j=>j.day===d&&j.status!=='Canceled').sort((a,b)=>a.slot-b.slot).map(j=>`<button class="card-j ${j.status}" data-open="${j.id}"><span class="muted">${SLOTS[j.slot]}</span><b>${esc(j.title)}</b><span class="muted">${j.crew?esc(U(j.crew).name):'Unassigned'}</span></button>`).join('')||'<span class="muted" style="font-size:.8rem;padding:4px">Open</span>'}</div>`).join('')}</div></div>
+  return head('Schedule','This week on the road.','Each card is a scheduled job. Open one to move it or reassign it.')+`<div class="glass pad"><div class="board">${days.map((d,i)=>`<div class="col"><h4 class="${i===0?'today':''}">${i===0?'Today':new Date(d).toLocaleDateString('en-US',{weekday:'short'})} · ${new Date(d).getDate()}</h4>${S.jobs.filter(j=>j.day===d&&j.status!=='Canceled').sort((a,b)=>a.slot-b.slot).map(j=>`<button class="card-j st-${slug(j.status)}" data-open="${j.id}"><span class="muted">${SLOTS[j.slot]}</span><b>${esc(j.title)}</b><span class="muted">${j.crew?esc(U(j.crew).name):'Unassigned'}</span></button>`).join('')||'<span class="muted" style="font-size:.8rem;padding:4px">Open</span>'}</div>`).join('')}</div></div>
   <h3>Needs a date (${uns.length})</h3>`+list(uns,'Everything is scheduled.'); };
 V.approvals=()=>{ const ex=S.expenses.filter(e=>e.status==='Submitted'), tf=S.time.filter(t=>t.review==='Pending');
   return head('Approvals','Review and sign off.','Approved expenses flow into spending reports. Flagged clock-ins need a decision before payroll.')+`
@@ -487,18 +498,18 @@ function docCard(d,kind){ const j=Jb(d.job), c=j?C(j.cust):null; let a='';
     if(d.status==='Accepted'&&can.invoice()&&!S.invoices.some(i=>i.job===d.job)) a=`<button class="btn sm gold" data-est="${d.id}" data-do="inv">Create invoice</button>`; }
   else { if(d.status==='Draft'&&can.invoice()) a=`<button class="btn sm gold" data-inv="${d.id}" data-do="send">Send</button>`;
     if(d.status==='Unpaid'&&can.invoice()) a=`<button class="btn sm ok" data-inv="${d.id}" data-do="paid">Mark paid</button><button class="btn sm no" data-inv="${d.id}" data-do="void">Void</button>`; }
-  return `<div class="glass pad stack"><div class="row" style="justify-content:space-between;align-items:start"><div><span class="mono muted">${d.id}</span><div style="font-weight:600">${esc(j?j.title:'Deck board replacement')}</div><div class="muted" style="font-size:.82rem">${esc(c?c.name:'Linda Moss')} · ${fD(d.created)}</div></div><div style="text-align:right"><div style="font-family:var(--display);font-size:1.4rem;font-weight:700" class="tnum">${usd(tot(d))}</div>${pill(d.status)}</div></div>
+  return `<div class="glass pad stack"><div class="row" style="justify-content:space-between;align-items:start"><div><span class="mono muted">${d.id}</span><div style="font-weight:600">${esc(j?j.title:'Job '+d.job+' (not found)')}</div><div class="muted" style="font-size:.82rem">${esc(c?c.name:'Unknown customer')} · ${fD(d.created)}</div></div><div style="text-align:right"><div style="font-family:var(--display);font-size:1.4rem;font-weight:700" class="tnum">${usd(tot(d))}</div>${pill(d.status)}</div></div>
     <div class="tw" style="background:none"><table><tbody>${d.lines.map(([n,q,p])=>`<tr><td style="white-space:normal">${esc(n)}</td><td class="n">${q} × ${usd(p)}</td><td class="n">${usd(Math.round(q*p))}</td></tr>`).join('')}</tbody></table></div>${a?`<div class="row">${a}</div>`:''}</div>`; }
 let bf='Estimates';
 V.billing=()=>{ const est=[...S.estimates].sort((a,b)=>b.created-a.created), inv=[...S.invoices].sort((a,b)=>b.created-a.created);
   return head('Estimates & invoices','Billing','Estimates and invoices are tracked separately from job status. Totals are stored in cents.')+kpis(['out','spend'])+
   `<div class="chips">${['Estimates','Invoices'].map(k=>`<button class="chip" data-bf="${k}" aria-pressed="${bf===k}">${k}</button>`).join('')}</div><div class="g2">${(bf==='Estimates'?est.map(d=>docCard(d,'est')):inv.map(d=>docCard(d,'inv'))).join('')}</div>`; };
 V.payroll=()=>{ const now=Date.now(), from=sod(now)-6*DAY;
-  const rows=crew().map(u=>{ const ts=S.time.filter(t=>t.user===u.id&&t.in>=from&&t.review!=='Rejected'); const h=ts.reduce((a,t)=>a+((t.out||now)-t.in)/HR,0), ot=Math.max(0,h-40); return {u,n:ts.length,h,ot,gross:Math.round((h-ot)*u.rate+ot*u.rate*1.5),flag:ts.some(t=>t.review==='Pending'),open:ts.some(t=>!t.out)}; });
+  const rows=crew().map(u=>{ const ts=S.time.filter(t=>t.user===u.id&&t.in>=from&&t.review!=='Rejected'); const h=ts.reduce((a,t)=>a+((t.out||now)-t.in)/HR,0), ot=Math.max(0,h-40); const rate=u.rate||0; return {u,n:ts.length,h,ot,noRate:!u.rate,gross:Math.round((h-ot)*rate+ot*rate*1.5),flag:ts.some(t=>t.review==='Pending'),open:ts.some(t=>!t.out)}; });
   const g=rows.reduce((a,r)=>a+r.gross,0);
   return head('Time & payroll','Last 7 days','From time clock records. Overtime at 1.5× over 40 hours. Flagged entries need approval before export.','<span class="sample">Rules not final</span>')+
   `<div class="kpis"><div class="glass kpi"><small>Hours</small><b>${rows.reduce((a,r)=>a+r.h,0).toFixed(1)}</b></div><div class="glass kpi"><small>Gross labor</small><b>${usd0(g)}</b></div><div class="glass kpi"><small>Flagged entries</small><b>${S.time.filter(t=>t.review==='Pending').length}</b></div></div>
-  <div class="tw"><table><thead><tr><th>Crew member</th><th class="n">Rate</th><th class="n">Shifts</th><th class="n">Hours</th><th class="n">OT</th><th class="n">Gross</th><th></th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.u.name)}</td><td class="n">${usd(r.u.rate)}</td><td class="n">${r.n}</td><td class="n">${r.h.toFixed(2)}</td><td class="n">${r.ot.toFixed(2)}</td><td class="n">${usd(r.gross)}</td><td>${r.flag?pill('Needs review'):''}${r.open?pill('On clock','p-gold'):''}</td></tr>`).join('')}
+  <div class="tw"><table><thead><tr><th>Crew member</th><th class="n">Rate</th><th class="n">Shifts</th><th class="n">Hours</th><th class="n">OT</th><th class="n">Gross</th><th></th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.u.name)}</td><td class="n">${r.noRate?pill('Rate missing','p-warn'):usd(r.u.rate)}</td><td class="n">${r.n}</td><td class="n">${r.h.toFixed(2)}</td><td class="n">${r.ot.toFixed(2)}</td><td class="n">${usd(r.gross)}</td><td>${r.noRate?'<span class="muted" style="font-size:.78rem">Admin: set rate in Team</span> ':''}${r.flag?pill('Needs review'):''}${r.open?pill('On clock','p-gold'):''}</td></tr>`).join('')}
   <tr><td><b>Total</b></td><td></td><td></td><td class="n"><b>${rows.reduce((a,r)=>a+r.h,0).toFixed(2)}</b></td><td></td><td class="n"><b>${usd(g)}</b></td><td></td></tr></tbody></table></div>`; };
 let invBy='email';
 V.team=()=>{ const groups=[['Crew','Crew'],['CrewLead','Crew Lead'],['Finance','Finance'],['Admin','Admin']];
@@ -512,7 +523,8 @@ V.team=()=>{ const groups=[['Crew','Crew'],['CrewLead','Crew Lead'],['Finance','
     <div id="i-err" class="muted" style="font-size:.85rem">Invites are recorded here. Delivery by email or text isn't connected yet.</div>
     <div class="row"><button class="btn gold" type="submit">Record invite</button></div></form>
   <div class="tw"><table class="matrix"><thead><tr><th>Permission</th><th>Crew</th><th>Lead</th><th>Finance</th><th>Admin</th></tr></thead><tbody>${A.map(r=>`<tr><td>${r[0]}</td>${r.slice(1).map(c=>`<td>${c==='y'?'<span class="yes">✓</span>':c==='lim'?'<span class="lim">limited</span>':''}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div>
-  <div class="tw"><table><thead><tr><th>Name</th><th>Role</th><th>Email</th><th>Phone</th><th>Status</th></tr></thead><tbody>${S.users.map(u=>`<tr><td>${esc(u.name)}</td><td>${u.id===me().id?ROLE_LABEL[u.role]+' (you)':`<select data-setrole="${u.id}" aria-label="Role for ${esc(u.name)}" style="padding:4px 8px;width:auto">${groups.map(([v,l])=>`<option value="${v}" ${u.role===v?'selected':''}>${l}</option>`).join('')}</select>`}</td><td>${esc(u.email||'—')}</td><td class="tnum">${esc(u.phone||'—')}</td><td>${pill(u.status)}</td></tr>`).join('')}</tbody></table></div>`; };
+  <div class="tw"><table><thead><tr><th>Name</th><th>Role</th><th class="n">Rate / h</th><th>Email</th><th>Phone</th><th>Status</th></tr></thead><tbody>${S.users.map(u=>`<tr><td>${esc(u.name)}</td><td>${u.id===me().id?ROLE_LABEL[u.role]+' (you)':`<select data-setrole="${u.id}" aria-label="Role for ${esc(u.name)}" style="padding:4px 8px;width:auto">${groups.map(([v,l])=>`<option value="${v}" ${u.role===v?'selected':''}>${l}</option>`).join('')}</select>`}</td><td class="n">${['Crew','CrewLead'].includes(u.role)?`<input type="number" data-setrate="${u.id}" aria-label="Hourly rate for ${esc(u.name)}" min="0" step="0.5" value="${u.rate?(u.rate/100).toFixed(2):''}" placeholder="Missing" style="width:90px;padding:4px 8px;text-align:right${u.rate?'':';border-color:var(--warn)'}">`:'<span class="muted">—</span>'}</td><td>${esc(u.email||'—')}</td><td class="tnum">${esc(u.phone||'—')}</td><td>${pill(u.status)}</td></tr>`).join('')}</tbody></table></div>
+  <div class="glass pad stack"><h3>Access changes</h3>${S.audit.length?`<ul class="tl">${[...S.audit].reverse().slice(0,12).map(l=>`<li><div>${esc(l.x)}<small>${esc(l.by)} · ${fDT(l.t)}</small></div></li>`).join('')}</ul>`:'<div class="muted">No role or invite changes yet.</div>'}</div>`; };
 let ts='Jobs';
 const TB={
   Jobs:()=>S.jobs.map(j=>({id:j.id,title:j.title,category:j.category,priority:j.priority,status:j.status,customer_id:j.cust,crew_id:j.crew||'',scheduled:j.day!=null?fD(j.day)+' '+SLOTS[j.slot]:'',created_utc:new Date(j.created).toISOString(),completed_utc:j.completed?new Date(j.completed).toISOString():''})),
@@ -522,6 +534,7 @@ const TB={
   Invoices:()=>S.invoices.map(e=>({id:e.id,job_id:e.job,status:e.status,total_cents:tot(e),created_utc:new Date(e.created).toISOString()})),
   Expenses:()=>S.expenses.map(e=>({id:e.id,user_id:e.by,job_id:e.job||'',category:e.cat,vendor:e.vendor,amount_cents:e.amount,status:e.status,date_utc:new Date(e.date).toISOString()})),
   TimeEntries:()=>S.time.map(t=>({id:t.id,user_id:t.user,site_id:t.site,in_utc:new Date(t.in).toISOString(),out_utc:t.out?new Date(t.out).toISOString():'',distance_m:t.dist,location_check:t.check,review:t.review})),
+  AccessLog:()=>S.audit.map(l=>({at_utc:new Date(l.t).toISOString(),by:l.by,action:l.x})).reverse(),
   ActivityLog:()=>S.jobs.flatMap(j=>j.log.map(l=>({job_id:j.id,at_utc:new Date(l.t).toISOString(),by:l.by,action:l.x}))).sort((a,b)=>b.at_utc.localeCompare(a.at_utc)),
 };
 V.data=()=>{ const rows=TB[ts](), cols=rows.length?Object.keys(rows[0]):[], num=c=>/cents|distance|lines|lat|lng/.test(c);
@@ -578,13 +591,13 @@ document.addEventListener('click',e=>{
   if(d.v){ S.views[S.role]=d.v; open=null; drawer(); render(); window.scrollTo({top:0}); return; }
   if(d.open){ open=d.open; estDraft=null; drawer(); return; }
   if(d.claim){ const j=Jb(d.claim); if(j.crew){ toast('Someone already claimed this job.'); render(); return; } j.crew=m.id; j.status='Accepted'; log(j,'Claimed job'); toast(`${j.id} is yours`); render(); if(open) drawer(); return; }
-  if(d.jf){ jf=d.jf; render(); return; } if(d.bf){ bf=d.bf; render(); return; } if(d.ts){ ts=d.ts; render(); return; } if(d.invby){ invBy=d.invby; render(); return; }
+  if(d.jf){ jf=d.jf; render(); return; } if(d.bf){ bf=d.bf; render(); return; } if(d.ts){ ts=d.ts; render(); return; } if(d.invby){ const keep={n:$('#i-name')?.value||'',r:$('#i-role')?.value}; invBy=d.invby; render(); $('#i-name').value=keep.n; if(keep.r) $('#i-role').value=keep.r; $('#i-c').focus(); return; }
   if(d.st){ const j=Jb(open); j.status=d.st; if(d.st==='Completed') j.completed=Date.now(); log(j,'Status: '+d.st); toast(`${j.id}: ${d.st}`); render(); drawer(); return; }
   if(d.exp){ const x=S.expenses.find(z=>z.id===d.exp); x.status=d.ok==='1'?'Approved':'Rejected'; toast(`Expense ${x.status.toLowerCase()}`); render(); return; }
   if(d.tf){ const t=S.time.find(z=>z.id===d.tf); t.review=d.ok==='1'?'Approved':'Rejected'; t.check=d.ok==='1'?'Approved by lead':t.check; toast(`Clock-in ${t.review.toLowerCase()}`); render(); return; }
   if(d.est){ const x=S.estimates.find(z=>z.id===d.est), j=Jb(x.job);
-    if(d.do==='send'){ x.status='Sent'; log(j,`Estimate ${x.id} sent to customer`); toast(`${x.id} sent`); }
-    if(d.do==='inv'){ const id='INV-'+(S.seq.inv++); S.invoices.push({id,job:x.job,status:'Draft',created:Date.now(),lines:x.lines.map(l=>[...l])}); log(j,`Invoice ${id} drafted from ${x.id}`); toast(`${id} drafted`); bf='Invoices'; }
+    if(d.do==='send'){ x.status='Sent'; if(j) log(j,`Estimate ${x.id} sent to customer`); toast(`${x.id} sent`); }
+    if(d.do==='inv'){ const id='INV-'+(S.seq.inv++); S.invoices.push({id,job:x.job,status:'Draft',created:Date.now(),lines:x.lines.map(l=>[...l])}); if(j) log(j,`Invoice ${id} drafted from ${x.id}`); toast(`${id} drafted`); bf='Invoices'; }
     render(); if(open) drawer(); return; }
   if(d.inv){ const x=S.invoices.find(z=>z.id===d.inv), j=Jb(x.job); x.status={send:'Unpaid',paid:'Paid',void:'Void'}[d.do]; if(j) log(j,`Invoice ${x.id}: ${x.status}`); toast(`${x.id}: ${x.status}`); render(); if(open) drawer(); return; }
   if(d.rm!=null&&d.rm!==''){ readEst(); estDraft.splice(+d.rm,1); if(!estDraft.length) estDraft.push({d:'',q:1,p:0}); drawer(); return; }
@@ -605,7 +618,11 @@ document.addEventListener('click',e=>{
 document.addEventListener('change',e=>{ const t=e.target;
   if(t.id==='role'){ S.role=t.value; open=null; drawer(); render(); window.scrollTo({top:0}); return; }
   if(t.id==='gps'){ S.gps[me().id]=t.value; render(); return; }
-  if(t.dataset.setrole){ const u=U(t.dataset.setrole); u.role=t.value; toast(`${u.name} is now ${ROLE_LABEL[t.value]}`); render(); return; }
+  if(t.dataset.setrole){ const u=U(t.dataset.setrole), from=u.role;
+    if(from==='Admin'&&u.status==='Active'&&S.users.filter(x=>x.role==='Admin'&&x.status==='Active').length<2){ toast('Keep at least one active Admin.'); render(); return; }
+    u.role=t.value; audit(`${u.name}: role ${ROLE_LABEL[from]} → ${ROLE_LABEL[t.value]}`);
+    toast(`${u.name} is now ${ROLE_LABEL[t.value]}`+(['Crew','CrewLead'].includes(t.value)&&!u.rate?' · add an hourly rate':'')); render(); return; }
+  if(t.dataset.setrate){ const u=U(t.dataset.setrate), c=Math.round(parseFloat(t.value)*100); if(!(c>0)){ toast('Enter a rate above $0.'); render(); return; } u.rate=c; audit(`${u.name}: rate set to ${usd(c)}/h`); toast(`${u.name}: ${usd(c)}/h`); render(); return; }
   if(t.dataset.set&&open){ const j=Jb(open), k=t.dataset.set;
     if(k==='crew'){ j.crew=t.value||null; if(j.crew&&j.status==='Requested') j.status='Accepted'; log(j,j.crew?'Assigned to '+U(j.crew).name:'Unassigned'); }
     if(k==='status'){ j.status=t.value; j.completed=t.value==='Completed'?Date.now():null; log(j,'Status: '+t.value); }
@@ -623,7 +640,9 @@ document.addEventListener('submit',e=>{ e.preventDefault(); const f=e.target, m=
   if(f.id==='invForm'){ const n=$('#i-name').value.trim(), c=$('#i-c').value.trim(), err=$('#i-err');
     const ok=invBy==='email'?/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c):c.replace(/\D/g,'').length>=10;
     if(!n){ err.innerHTML='<span style="color:var(--bad)">Add the person\'s name.</span>'; return; } if(!ok){ err.innerHTML=`<span style="color:var(--bad)">${invBy==='email'?'That email address looks incomplete.':'Enter a 10-digit phone number.'}</span>`; return; }
-    S.users.push({id:uid('u'),name:n,role:$('#i-role').value,email:invBy==='email'?c:'',phone:invBy==='phone'?c:'',status:'Invited',rate:2500}); toast(`Invite recorded for ${n}`); render(); return; }
+    const dig=s=>String(s||'').replace(/\D/g,'').slice(-10), dup=S.users.find(u=>invBy==='email'?(u.email||'').toLowerCase()===c.toLowerCase():u.phone&&dig(u.phone)===dig(c));
+    if(dup){ err.innerHTML=`<span style="color:var(--bad)">${esc(dup.name)} already uses that ${invBy==='email'?'email address':'number'}.</span>`; return; }
+    const role=$('#i-role').value; S.users.push({id:uid('u'),name:n,role,email:invBy==='email'?c:'',phone:invBy==='phone'?c:'',status:'Invited'}); audit(`Invited ${n} as ${ROLE_LABEL[role]}`); toast(`Invite recorded for ${n}`); render(); return; }
   if(f.id==='estForm'){ readEst(); const lines=estDraft.filter(l=>l.d.trim()&&l.q>0).map(l=>[l.d.trim(),l.q,Math.round(l.p*100)]); if(!lines.length) return toast('Add at least one line with an item and quantity.');
     const id='EST-'+(S.seq.est++), j=Jb(open); S.estimates.push({id,job:j.id,status:'Draft',created:Date.now(),by:m.id,lines}); log(j,`Estimate ${id} drafted`); estDraft=null; toast(`${id} saved as draft`); render(); drawer(); }
 });
@@ -632,3 +651,5 @@ window.addEventListener('hashchange',()=>{ fromHash(); render(); });
 fromHash(); render();
 })();
 </script>
+
+</body></html>
